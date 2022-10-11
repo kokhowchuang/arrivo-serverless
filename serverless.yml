@@ -1,14 +1,19 @@
 org: kokhowchuang
 app: express-starter
 service: arrivo-serverless
-frameworkVersion: '3'
+frameworkVersion: "3"
+
+plugins:
+  - serverless-offline
 
 provider:
   name: aws
   runtime: nodejs14.x
+  environment: ${file(env.${opt:stage, self:provider.stage}.json)}
 
 functions:
   api:
     handler: handler.handler
     events:
-      - httpApi: '*'
+      - httpApi: "*"
+    timeout: 30

@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "dependencies": {
+    "dotenv": "^16.0.3",
     "express": "^4.17.1",
-    "serverless-http": "^2.7.0"
+    "serverless-http": "^2.7.0",
+    "serverless-mysql": "^1.5.4",
+    "serverless-offline": "^11.1.1"
   }
 }
