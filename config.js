@@ -1,16 +1,16 @@
-const { expressjwt: jwt } = require("express-jwt");
-const jwks = require("jwks-rsa");
+const jwksRsa = require("jwks-rsa");
 const mysql = require("serverless-mysql")();
+const jwtAuthz = require("express-jwt-authz");
+const jwt = require("express-jwt");
+
+const { AUTH0_DOMAIN, AUDIENCE } = process.env;
 
 const checkJwt = jwt({
-  secret: jwks.expressJwtSecret({
-    cache: true,
-    rateLimit: true,
-    jwksRequestsPerMinute: 5,
-    jwksUri: "https://dev-ba9k-wqm.us.auth0.com/.well-known/jwks.json",
+  secret: jwksRsa.expressJwtSecret({
+    jwksUri: `https://${AUTH0_DOMAIN}/.well-known/jwks.json`,
   }),
-  audience: "https://arrivotest.com",
-  issuer: "https://dev-ba9k-wqm.us.auth0.com/",
+  audience: AUDIENCE,
+  issuer: `https://${AUTH0_DOMAIN}/`,
   algorithms: ["RS256"],
 });
 
@@ -21,7 +21,13 @@ mysql.config({
   password: process.env.PASSWORD,
 });
 
+const checkAdminScopes = jwtAuthz(["create:user", "update:user"]);
+const checkProtectedScopes = jwtAuthz(["create:user"], {
+  customScopeKey: "permissions",
+});
+
 module.exports = {
-  checkJwt,
+  checkAdminScopes,
+  checkProtectedScopes,
   mysql,
 };
