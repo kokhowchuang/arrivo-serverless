@@ -7,6 +7,12 @@
     "body-parser": "^1.20.1",
     "dotenv": "^16.0.3",
     "express": "^4.17.1",
+    "express-jwt": "^7.7.5",
+    "express-jwt-authz": "^2.4.1",
+    "express-session": "^1.17.3",
+    "jwks-rsa": "^2.1.5",
+    "passport": "^0.6.0",
+    "passport-auth0": "^1.4.3",
     "serverless-http": "^2.7.0",
     "serverless-mysql": "^1.5.4",
     "serverless-offline": "^11.1.1"
