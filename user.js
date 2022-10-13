@@ -7,7 +7,7 @@ const {
   checkProtectedScopes,
 } = require("./config");
 
-router.get("/users", async (req, res, next) => {
+router.get("/users", checkJwt, checkAdminScopes, async (req, res, next) => {
   try {
     const results = await mysql.query("SELECT * FROM arrivo.User");
     await mysql.end();
@@ -18,7 +18,7 @@ router.get("/users", async (req, res, next) => {
   }
 });
 
-router.post("/users", [checkJwt, checkAdminScopes], async (req, res, next) => {
+router.post("/users", checkJwt, checkAdminScopes, async (req, res, next) => {
   try {
     if (Object.keys(req.body).length === 0) {
       return res.status(400).json({ error: "Request body cannot be empty." });
@@ -45,40 +45,36 @@ router.post("/users", [checkJwt, checkAdminScopes], async (req, res, next) => {
   }
 });
 
-router.put(
-  "/users/:id",
-  [checkJwt, checkAdminScopes],
-  async (req, res, next) => {
-    try {
-      if (Object.keys(req.body).length === 0) {
-        return res.status(400).json({ error: "Request body cannot be empty." });
-      }
-
-      const body = [];
-
-      for (const [key, value] of Object.entries(req.body)) {
-        body.push(key + " = ?");
-      }
-
-      const results = await mysql.query(
-        "UPDATE arrivo.User SET " +
-          body.join(", ") +
-          " WHERE UserID = " +
-          req.params.id,
-        Object.values(req.body)
-      );
-      await mysql.end();
-
-      if (results.affectedRows === 0) {
-        return res.status(404).json({ error: "User not found." });
-      }
-
-      return res.status(200).json({ message: "User record updated." });
-    } catch (err) {
-      return res.status(500).json({ error: err.message });
+router.put("/users/:id", checkJwt, checkAdminScopes, async (req, res, next) => {
+  try {
+    if (Object.keys(req.body).length === 0) {
+      return res.status(400).json({ error: "Request body cannot be empty." });
     }
+
+    const body = [];
+
+    for (const [key, value] of Object.entries(req.body)) {
+      body.push(key + " = ?");
+    }
+
+    const results = await mysql.query(
+      "UPDATE arrivo.User SET " +
+        body.join(", ") +
+        " WHERE UserID = " +
+        req.params.id,
+      Object.values(req.body)
+    );
+    await mysql.end();
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    return res.status(200).json({ message: "User record updated." });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
   }
-);
+});
 
 router.patch("/users/:id/membership", async (req, res, next) => {
   try {

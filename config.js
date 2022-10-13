@@ -1,7 +1,7 @@
 const jwksRsa = require("jwks-rsa");
-const mysql = require("serverless-mysql")();
 const jwtAuthz = require("express-jwt-authz");
 const jwt = require("express-jwt");
+const mysql = require("serverless-mysql")();
 
 const { AUTH0_DOMAIN, AUDIENCE } = process.env;
 
@@ -21,7 +21,12 @@ mysql.config({
   password: process.env.PASSWORD,
 });
 
-const checkAdminScopes = jwtAuthz(["create:user", "update:user"]);
+const checkAdminScopes = jwtAuthz([
+  "list:users",
+  "create:users",
+  "update:users",
+  "create:categories",
+]);
 const checkProtectedScopes = jwtAuthz(["create:user"], {
   customScopeKey: "permissions",
 });
@@ -30,4 +35,5 @@ module.exports = {
   checkAdminScopes,
   checkProtectedScopes,
   mysql,
+  checkJwt,
 };

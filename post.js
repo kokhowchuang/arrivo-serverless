@@ -7,14 +7,22 @@ const {
   checkProtectedScopes,
 } = require("./config");
 
-router.get("/posts", [checkJwt], async function (req, res, next) {
+router.get("/posts", checkJwt, async function (req, res, next) {
   try {
     const limit = req.query.limit || 10;
-    const page = parseInt(req.query.page) - 1 || 0;
+    const page = parseInt(req.query.page) || 1;
+    const offset = limit * page - limit;
 
-    const results = await mysql.query(
-      `SELECT * FROM arrivo.Post LIMIT ${limit} OFFSET ${page}`
-    );
+    let whereClause = "";
+
+    whereClause +=
+      typeof req.query.status !== "undefined"
+        ? `WHERE Status = '${req.query.status}'`
+        : "";
+
+    const query = `SELECT * FROM arrivo.Post ${whereClause} LIMIT ${limit} OFFSET ${offset}`;
+
+    const results = await mysql.query(query);
     await mysql.end();
 
     return res.status(200).json(results);
@@ -23,7 +31,7 @@ router.get("/posts", [checkJwt], async function (req, res, next) {
   }
 });
 
-router.post("/posts", [checkJwt, checkAdminScopes], async (req, res, next) => {
+router.post("/posts", checkJwt, checkAdminScopes, async (req, res, next) => {
   try {
     if (Object.keys(req.body).length === 0) {
       return res.status(400).json({ error: "Request body cannot be empty." });
@@ -45,6 +53,37 @@ router.post("/posts", [checkJwt, checkAdminScopes], async (req, res, next) => {
     await mysql.end();
 
     return res.status(200).json();
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+router.put("/posts/:id", checkJwt, checkAdminScopes, async (req, res, next) => {
+  try {
+    if (Object.keys(req.body).length === 0) {
+      return res.status(400).json({ error: "Request body cannot be empty." });
+    }
+
+    const body = [];
+
+    for (const [key, value] of Object.entries(req.body)) {
+      body.push(key + " = ?");
+    }
+
+    const results = await mysql.query(
+      "UPDATE arrivo.Post SET " +
+        body.join(", ") +
+        " WHERE PostID = " +
+        req.params.id,
+      Object.values(req.body)
+    );
+    await mysql.end();
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ error: "Post not found." });
+    }
+
+    return res.status(200).json({ message: "Post record updated." });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
