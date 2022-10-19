@@ -26,6 +26,30 @@ router.get("/posts", checkJwt, async function (req, res, next) {
     await mysql.end();
 
     return res.status(200).json(results);
+  } catch (err) {}
+});
+
+router.get("/posts/:id", checkJwt, async function (req, res, next) {
+  try {
+    const query = `SELECT * FROM arrivo.Post WHERE PostID = ${req.params.id} LIMIT 1`;
+    const results = await mysql.query(query);
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: "Post not found" });
+    } else {
+      if (results[0]["Label"] === "Premium") {
+        if (
+          req.user["https://arrivotest.com/user_metadata"].membership !==
+          "premium"
+        ) {
+          return res
+            .status(404)
+            .json({ error: "Premium content. Please upgrade your account." });
+        }
+      }
+
+      return res.status(200).json(results);
+    }
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }

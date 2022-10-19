@@ -25,6 +25,14 @@ app.use("/", userRouter);
 app.use("/", categoryRouter);
 app.use("/", postRouter);
 
+app.post("/callback", function (req, res, next) {
+  console.log(req.body);
+
+  return res.status(200).json({
+    body: req.body,
+  });
+});
+
 app.use((req, res, next) => {
   return res.status(404).json({
     error: "Not Found",
